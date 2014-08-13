@@ -49,7 +49,7 @@ function game( canvasID )
 	var thisTime;
 	var dt;
 	
-	var currentWayPoint = [ 1, 1, 0.88 ];
+	var currentWayPoint = 0;
 	
 	var init = function()
 	{
@@ -97,15 +97,16 @@ function game( canvasID )
 		checkWaypoint( iH.posX, iH.posY );
 		if( offroad( iH.posX, iH.posY ) )
 		{
-			iH.posX = currentWayPoint[0];
-			iH.posY = currentWayPoint[1];
-			iH.carHeading = currentWayPoint[2];
+			iH.posX = waypointList[currentWayPoint].spawnX;
+			iH.posY = waypointList[currentWayPoint].spawnY;
+			iH.carHeading = waypointList[currentWayPoint].heading;
 			iH.setSpeed( 0 );
 		}
 		
 		/* draw objects */
 		ctx.clear();
 		map.draw( iH.posX, iH.posY, 0 );
+		drawWaypoints( iH.posX, iH.posY );
 		playerCar.draw( 0, 0, iH.carHeading );
 		
 		if(enemyData[0]){
@@ -119,7 +120,6 @@ function game( canvasID )
 	{
 		if( x < 0 || y < 0 || x > 4000 || y > 4000 ){ return true; }
 		var data = offscreenCtx.getImageData( x, y, 1, 1 ).data;
-		console.log( "0:" + data[0] + " 1:" + data[1] + " 2:" + data[2] );
 		if( data[0] == 0 && data[1] == 0 && data[2] == 0 ){ return false; } // black is street
 		return true;
 	}
@@ -130,18 +130,39 @@ function game( canvasID )
 		{
 			if( x > waypointList[i].sX && x < waypointList[i].eX && y > waypointList[i].sY && y < waypointList[i].eY )
 			{
-				currentWayPoint[0] = waypointList[i].spawnX;
-				currentWayPoint[1] = waypointList[i].spawnY;
-				currentWayPoint[2] = waypointList[i].heading;
+				// deactivate old waypoint
+				waypointList[ currentWayPoint ].active = false;
+				
+				// set new waypoint
+				currentWayPoint = i;
+				waypointList[i].active = true;
 				return;
 			}
 		}
 	}
 	
+	var drawWaypoints = function( x, y )
+	{
+		for( var i = 0; i < waypointList.length; i++ )
+		{
+			ctx.save();
+			ctx.beginPath();
+			ctx.translate( waypointList[i].spawnX + 400 - x , waypointList[i].spawnY + 400 - y );
+			ctx.arc( 0, 0, 35, 0, 2 * Math.PI, false);
+			if( waypointList[i].active )
+			{
+				ctx.fillStyle = '#0FF2F2';
+				ctx.fill();
+			}
+			ctx.lineWidth = 10;
+			ctx.strokeStyle = '#00ff00';
+			ctx.stroke();
+			ctx.restore();
+		}
+	}
+	
 	init();
 }
-
-
 
 // SETUP HTML PAGE
 $( function()
