@@ -11,9 +11,9 @@ function InputHandler()
 	var wheelBase = 60;
 	var oneDegree = Math.PI / 180;
 	
-	this.posX = 0;
-	this.posY = 0;
-	this.carHeading = 0;
+	this.posX = 1;
+	this.posY = 1;
+	this.carHeading = 0.87;
 	
 	var init = function()
 	{
@@ -26,6 +26,11 @@ function InputHandler()
 		{
 			handleKeyRelease( event.which );
 		} );
+	}
+	
+	this.setSpeed = function( s )
+	{
+		carSpeed = s;
 	}
 	
 	var handleKeyPress = function( key )
@@ -107,6 +112,10 @@ function InputHandler()
 		msg += "heading:" + this.carHeading + "<br>";
 		
 		$( "#log" ).html( msg );
+		 
+		var websocketMsg = {"type":"position", "X":this.posX, "Y":this.posY, "Angle":steerAngle, "Heading":this.carHeading};
+		var msg = JSON.stringify(websocketMsg);
+		webSocketHandler.sendMessage(msg);
 	}
 	
 	init();

@@ -25,18 +25,31 @@ Array.prototype.remove = function(from, to) {
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
 /* IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT */
 
+enemyData = [];
 
+function updateEnemy(enemyObject)
+{
+	enemyData[0] = enemyObject;	
+}
 
 function game( canvasID )
 {
+	var _this = this;
+
 	var map;
 	var playerCar;
+	var enemyCar;
+	var img;
+	var offscreenCanvas;
+	var offscreenCtx;
 	
 	var iH;
 	
 	var lastTime;
 	var thisTime;
 	var dt;
+	
+	var currentWayPoint = [ 1, 1, 0.88 ];
 	
 	var init = function()
 	{
@@ -46,7 +59,22 @@ function game( canvasID )
 		iH = new InputHandler();
 		
 		map			= new MapEntity( "images/map.jpg", ctx, true, canvas.width/2, canvas.height/2, false );
+		img = new Image();
+		img.onload = setOffscreenCanvas;
+		img.src = "images/map.jpg";
+	
 		playerCar	= new MapEntity( "images/top.png", ctx, true, canvas.width/2, canvas.height/2, true );
+		enemyCar	= new MapEntity( "images/top.png", ctx, true, canvas.width/2, canvas.height/2, true);
+	}
+	
+	var setOffscreenCanvas = function()
+	{
+		offscreenCanvas = $('<canvas/>')[0];
+		offscreenCanvas.width = img.width;
+		offscreenCanvas.height = img.height;
+		offscreenCtx = offscreenCanvas.getContext('2d');
+		offscreenCtx.drawImage(img, 0, 0, img.width, img.height);
+		_this.start();
 	}
 	
 	this.start = function()
@@ -64,15 +92,52 @@ function game( canvasID )
 		dt = ( thisTime - lastTime ) / 1000;
 		lastTime = thisTime;
 	
+		/* update positions */
 		iH.update( dt );
-	
+		checkWaypoint( iH.posX, iH.posY );
+		if( offroad( iH.posX, iH.posY ) )
+		{
+			iH.posX = currentWayPoint[0];
+			iH.posY = currentWayPoint[1];
+			iH.carHeading = currentWayPoint[2];
+			iH.setSpeed( 0 );
+		}
+		
+		/* draw objects */
 		ctx.clear();
 		map.draw( iH.posX, iH.posY, 0 );
 		playerCar.draw( 0, 0, iH.carHeading );
 		
+		if(enemyData[0]){
+			enemyCar.draw(-(enemyData[0].X) + iH.posX, -(enemyData[0].Y) + iH.posY, enemyData[0].Heading);
+		}
+		
 		requestAnimationFrame( gameLoop );
 	}
 
+	var offroad = function( x, y )
+	{
+		if( x < 0 || y < 0 || x > 4000 || y > 4000 ){ return true; }
+		var data = offscreenCtx.getImageData( x, y, 1, 1 ).data;
+		console.log( "0:" + data[0] + " 1:" + data[1] + " 2:" + data[2] );
+		if( data[0] == 0 && data[1] == 0 && data[2] == 0 ){ return false; } // black is street
+		return true;
+	}
+	
+	var checkWaypoint = function( x, y )
+	{
+		for( var i = 0; i < waypointList.length; i++ )
+		{
+			if( x > waypointList[i].sX && x < waypointList[i].eX && y > waypointList[i].sY && y < waypointList[i].eY )
+			{
+				currentWayPoint[0] = waypointList[i].spawnX;
+				currentWayPoint[1] = waypointList[i].spawnY;
+				currentWayPoint[2] = waypointList[i].heading;
+				return;
+			}
+		}
+	}
+	
 	init();
 }
 
@@ -82,5 +147,4 @@ function game( canvasID )
 $( function()
 {
 	myGame = new game( "#view" );
-	myGame.start();
 });
