@@ -15,12 +15,15 @@
 	<script type="text/javascript" charset="utf8" src="objects/webSocketHandler.js"></script>
 	<script type="text/javascript" charset="utf8" src="objects/inputHandler.js"></script>
 	<script type="text/javascript" charset="utf8" src="objects/mapEntity.js"></script>
-	<script type="text/javascript" charset="utf8" src="setup/waypoints.js"></script>
+	<script type="text/javascript" charset="utf8" src="setup/setup.js"></script>
 	<script type="text/javascript" charset="utf8" src="scripts/carRace.js"></script>
 </head>
 
 <body>
 	<canvas id="view" width="800" height="800">benutz n gscheiten browser</canvas>
 	<div id="log"></div>
+	<div id="connect">
+		<input id="server" type="text" value="ws://139.22.81.91:8025/websockets/game"></input><button type="button" id="connectButton">connect</button>
+	</div>
 </body>
 </html>

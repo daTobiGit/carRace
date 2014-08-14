@@ -13,8 +13,15 @@ html, body
 
 #log
 {
-	display: inline;
+	height: 100 px;
 	position: absolute;
 	top: 0px;
+	left: 820px;
+}
+
+#connect
+{
+	position: absolute;
+	top: 110px;
 	left: 820px;
 }

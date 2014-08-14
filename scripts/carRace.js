@@ -44,6 +44,7 @@ function game( canvasID )
 	var offscreenCtx;
 	
 	var iH;
+	var wsH;
 	
 	var lastTime;
 	var thisTime;
@@ -57,14 +58,17 @@ function game( canvasID )
 		ctx = canvas.getContext("2d");
 		
 		iH = new InputHandler();
+		wsH = new WebSocketHandler();
 		
-		map			= new MapEntity( "images/map.jpg", ctx, true, canvas.width/2, canvas.height/2, false );
+		map = new MapEntity( "images/map.jpg", ctx, true, canvas.width/2, canvas.height/2, false );
 		img = new Image();
 		img.onload = setOffscreenCanvas;
 		img.src = "images/map.jpg";
 	
-		playerCar	= new MapEntity( "images/top.png", ctx, true, canvas.width/2, canvas.height/2, true );
-		enemyCar	= new MapEntity( "images/top.png", ctx, true, canvas.width/2, canvas.height/2, true);
+		playerCar	= new MapEntity( "images/car0.png", ctx, true, canvas.width/2, canvas.height/2, true );
+		enemyCar	= new MapEntity( "images/car1.png", ctx, true, canvas.width/2, canvas.height/2, true);
+		
+		$( "#connectButton" ).on( "click", _this.connectToServer );
 	}
 	
 	var setOffscreenCanvas = function()
@@ -85,14 +89,13 @@ function game( canvasID )
 		//while( !map.loaded || !playerCar.loaded ){}; // wait till all is loaded
 	}
 	
-	
 	var gameLoop = function()
 	{
 		thisTime = Date.now();
 		dt = ( thisTime - lastTime ) / 1000;
 		lastTime = thisTime;
 	
-		/* update positions */
+		/* update positions ***********************************************************************************/
 		iH.update( dt );
 		checkWaypoint( iH.posX, iH.posY );
 		if( offroad( iH.posX, iH.posY ) )
@@ -102,16 +105,20 @@ function game( canvasID )
 			iH.carHeading = waypointList[currentWayPoint].heading;
 			iH.setSpeed( 0 );
 		}
+		wsH.sendMessage( JSON.stringify( { "type": "position", "X": iH.posX, "Y": iH.posY, "Heading": iH.carHeading } ) );
+		/******************************************************************************************************/
 		
-		/* draw objects */
+		/* draw objects ***************************************************************************************/
 		ctx.clear();
 		map.draw( iH.posX, iH.posY, 0 );
 		drawWaypoints( iH.posX, iH.posY );
 		playerCar.draw( 0, 0, iH.carHeading );
 		
-		if(enemyData[0]){
+		if(enemyData[0])
+		{
 			enemyCar.draw(-(enemyData[0].X) + iH.posX, -(enemyData[0].Y) + iH.posY, enemyData[0].Heading);
 		}
+		/******************************************************************************************************/
 		
 		requestAnimationFrame( gameLoop );
 	}
@@ -159,6 +166,11 @@ function game( canvasID )
 			ctx.stroke();
 			ctx.restore();
 		}
+	}
+	
+	_this.connectToServer = function()
+	{
+		wsH.connect( $("#server").val() );
 	}
 	
 	init();

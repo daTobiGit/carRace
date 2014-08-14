@@ -106,16 +106,9 @@ function InputHandler()
 		
 		this.carHeading = Math.atan2( frontWheelY - backWheelY , frontWheelX - backWheelX );
 		
-		var msg = "posX: " + this.posX + "<br>";
-		msg += "posY: " + this.posY + "<br>";
-		msg += "angl: " + steerAngle + "<br>";
-		msg += "heading:" + this.carHeading + "<br>";
-		
+		var msg = "posX: " + this.posX + "<br>" + "posY: " + this.posY + "<br>";
 		$( "#log" ).html( msg );
 		 
-		var websocketMsg = {"type":"position", "X":this.posX, "Y":this.posY, "Angle":steerAngle, "Heading":this.carHeading};
-		var msg = JSON.stringify(websocketMsg);
-		webSocketHandler.sendMessage(msg);
 	}
 	
 	init();

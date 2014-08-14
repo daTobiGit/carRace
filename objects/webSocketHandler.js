@@ -1,46 +1,59 @@
-var webSocketHandler = 
+
+function WebSocketHandler()
 {
-   ws: null,
-   connected: false,
+	var _this = this;
+	var ws;
+	var connected = false;
    
-   connect: function()
-   {
-	   this.ws = new WebSocket("ws://139.22.81.129:8025/websockets/game")
-	   this.ws.onopen = function()
-	   {
-		   console.log("WebSocket connected");
-		   webSocketHandler.connected = true;
-	   };
-	   this.ws.onclose = function()
-	   {
-		   console.log("WebSocket disconnected");
-		   webSocketHandler.connected = false;
-	   };
-	   this.ws.onmessage = function(msg)
-	   {
-		   console.log(msg.data);
-		   var obj = eval("(" + msg.data + ")");
-		   updateEnemy(obj);
-	   };
-	   this.ws.onerror = function(error)
-	   {
-		   console.log(error);
-	   }
-   },
+	var init = function()
+	{
 		
-   closeWebsocket: function()
-   {
-	   ws.close();
-   },
-		
-   sendMessage: function(msg)
-   {		
-	   if(this.ws === null)
-	   {
-		   this.connect();
-	   }
-	   if(this.connected === true){
-		   this.ws.send(msg);
-	   }
-   }
+	}
+	
+	_this.connect = function( address )
+	{
+		ws = new WebSocket( address ); // "ws://139.22.81.91:8025/websockets/game"
+		ws.onopen    = onOpen;
+		ws.onclose   = onClose;
+		ws.onmessage = onMessage;
+		ws.onerror   = onError;
+	}
+	
+	var onOpen = function()
+	{
+		connected = true;
+		console.log("WebSocket connected");
+	}
+	
+	var onClose = function()
+	{
+		connected = false;
+		console.log("WebSocket disconnected");
+	}
+	
+	var onMessage = function( msg )
+	{
+		var obj = eval("(" + msg.data + ")");
+		updateEnemy(obj);
+	}
+	
+	var onError = function( error )
+	{
+		console.log(error);
+	}
+	
+	_this.closeWebsocket = function()
+	{
+		ws.close();
+	}
+	
+	_this.sendMessage = function( msg )
+	{
+		if( connected )
+		{
+			ws.send( msg );
+		}
+	}
+
+	init();
 }
